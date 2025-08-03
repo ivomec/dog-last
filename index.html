@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>금호동물병원 통합 대시보드</title>
+
+    <!-- NOTE: Libraries for CSS and JS are intentionally omitted in this HTML-only file. -->
+    <!-- Libraries to be added later: TailwindCSS, html2canvas, jspdf, Chart.js, Google Fonts, Font Awesome -->
+
+</head>
+<body class="p-4 md:p-6" style="font-family: 'Noto Sans KR', sans-serif; background-color: #f0f4f8;">
+
+    <header class="text-center mb-4">
+        <h1 style="font-size: 2.25rem; font-weight: 800; color: #1f2937;">💖 금호동물병원 통합 대시보드 💖</h1>
+        <p style="margin-top: 0.5rem; font-size: 1.125rem; color: #4b5563;">환자 관리의 모든 것을 한 곳에서.</p>
+    </header>
+
+    <!-- Main Tab Navigation -->
+    <nav style="display: flex; justify-content: center; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 10px; margin: 20px auto; max-width: 95%;">
+        <button class="main-tab-button active" data-target="dental-chart-wrapper" style="padding: 15px 25px; border: none; font-size: 1.1em; font-weight: 700; cursor: pointer; color: #4f46e5; border-bottom: 4px solid #4f46e5; background-color: #eef2ff; flex-grow: 1; text-align: center;">🦷치과 차트</button>
+        <button class="main-tab-button" data-target="anesthesia-wrapper" style="padding: 15px 25px; border: none; font-size: 1.1em; font-weight: 700; cursor: pointer; color: #555; border-bottom: 4px solid transparent; background-color: transparent; flex-grow: 1; text-align: center;">💓마취 대시보드</button>
+        <button class="main-tab-button" data-target="education-wrapper" style="padding: 15px 25px; border: none; font-size: 1.1em; font-weight: 700; cursor: pointer; color: #555; border-bottom: 4px solid transparent; background-color: transparent; flex-grow: 1; text-align: center;">🎓보호자 교육</button>
+    </nav>
+    
+    <main>
+        <!-- ====================================================== -->
+        <!-- == TAB 1: DENTAL CHART CONTENT                      == -->
+        <!-- ====================================================== -->
+        <div id="dental-chart-wrapper" class="main-tab-content active" style="display: block;">
+            <nav class="dashboard-nav">
+                <a href="#" class="nav-tab" id="tab-main" data-target="content-main">💖 병원소개</a>
+                <a href="#" class="nav-tab" id="tab-procedure" data-target="content-procedure">🏥 수술 과정</a>
+                <a href="#" class="nav-tab" id="tab-healthcheck-small" data-target="content-healthcheck-small">🩺 건강검진(&lt;20kg)</a>
+                <a href="#" class="nav-tab" id="tab-healthcheck-large" data-target="content-healthcheck-large">🩺 건강검진(20kg≥)</a>
+                <a href="#" class="nav-tab" id="tab-scaling" data-target="content-scaling">🦷 스케일링</a>
+                <a href="#" class="nav-tab" id="tab-extraction-small" data-target="content-extraction-small">😿 수술비용(&lt;10kg)</a>
+                <a href="#" class="nav-tab" id="tab-extraction-large" data-target="content-extraction-large">😿 수술비용(10kg≥)</a>
+                <a href="#" class="nav-tab" id="tab-addons-small" data-target="content-addons-small">💊 추가처치(&lt;10kg)</a>
+                <a href="#" class="nav-tab" id="tab-addons-large" data-target="content-addons-large">💊 추가처치(10kg≥)</a>
+                <a href="#" class="nav-tab" id="tab-nerve" data-target="content-nerve">❤️‍🩹 신경 및 보존 치료</a>
+                <a href="#" class="nav-tab" id="tab-calculator" data-target="content-calculator">🧮 치료비 계산기</a>
+                <a href="#" class="nav-tab" id="tab-estimate" data-target="content-estimate">📄 예상비용 안내</a>
+                <a href="#" class="nav-tab" id="tab-guardian-report" data-target="content-guardian-report">❤️ 보호자용 치료내역</a>
+            </nav>
+        
+            <div class="dashboard-content">
+        
+                <div id="content-main" class="content-panel info-page">
+                    <!-- Dental Main Content Here -->
+                </div>
+                
+                <div id="content-procedure" class="content-panel info-page">
+                    <!-- Dental Procedure Content Here -->
+                </div>
+        
+                <!-- ... Other Dental Content Panels ... -->
+                
+                <div id="content-calculator" class="content-panel calculator-common">
+                     <div id="Calculator-Page">
+                         <div class="capture-area">
+                            <div class="patient-info-inputs">
+                                <label for="patient-name-calc">환자 이름:</label><input type="text" id="patient-name-calc" placeholder="이름 입력">
+                                <label for="visit-date-calc">진료 날짜:</label><input type="date" id="visit-date-calc">
+                                <label for="patient-weight-calc">몸무게(kg):</label><input type="number" id="patient-weight-calc" placeholder="kg" step="0.1" style="width: 80px;">
+                            </div>
+                            <h2 class="dynamic-chart-title"></h2>
+                            <div class="main-container">
+                                <div class="table-section">
+                                    <h2>우 상악 & 하악</h2>
+                                    <h3 class="table-title-upper-right">우 상악 (100번대)</h3>
+                                    <table class="table-upper-right">
+                                        <thead><tr><th></th><th>번호</th><th>특이사항</th><th>시술 선택</th><th>비용</th><th></th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                    <h3 class="table-title-lower-right">우 하악 (400번대)</h3>
+                                    <table class="table-lower-right">
+                                        <thead><tr><th></th><th>번호</th><th>특이사항</th><th>시술 선택</th><th>비용</th><th></th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <div class="table-section">
+                                    <h2>좌 상악 & 하악</h2>
+                                    <h3 class="table-title-upper-left">좌 상악 (200번대)</h3>
+                                    <table class="table-upper-left">
+                                        <thead><tr><th></th><th>번호</th><th>특이사항</th><th>시술 선택</th><th>비용</th><th></th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                    <h3 class="table-title-lower-left">좌 하악 (300번대)</h3>
+                                    <table class="table-lower-left">
+                                        <thead><tr><th></th><th>번호</th><th>특이사항</th><th>시술 선택</th><th>비용</th><th></th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- ... Rest of Calculator HTML ... -->
+                         </div>
+                        <div class="export-container"><button class="save-data-btn">💾 기록 저장</button><button class="load-data-btn">📂 기록 불러오기</button><input type="file" class="load-data-input" accept=".json" style="display: none;"><button class="export-png-btn">🖼️ PNG 저장</button><button class="export-pdf-btn">📄 PDF 저장</button></div>
+                    </div>
+                </div>
+        
+                <div id="content-estimate" class="content-panel calculator-common">
+                     <div id="Estimate-Page">
+                        <div class="capture-area"></div>
+                        <div class="export-container"><button class="export-png-btn">🖼️ PNG 저장</button><button class="export-pdf-btn">📄 PDF 저장</button></div>
+                     </div>
+                </div>
+                
+                <div id="content-guardian-report" class="content-panel calculator-common">
+                    <div id="GuardianReport-Page">
+                        <div class="capture-area"></div>
+                        <div class="export-container"><button class="export-png-btn">🖼️ PNG 저장</button><button class="export-pdf-btn">📄 PDF 저장</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- == TAB 2: ANESTHESIA DASHBOARD CONTENT              == -->
+        <!-- ====================================================== -->
+        <div id="anesthesia-wrapper" class="main-tab-content" style="display: none;">
+            <div class="max-w-7xl mx-auto">
+                <header class="text-center mb-6">
+                    <h1 class="text-3xl md:text-4xl font-bold text-gray-800">통합 마취 대시보드</h1>
+                    <p class="mt-2 text-lg text-gray-600">금호동물병원 실전 워크플로우 (Anes AI)</p>
+                </header>
+        
+                <div class="card p-6 md:p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto items-center">
+                        <div>
+                            <label for="anesthesia-weight" class="block text-center text-xl font-semibold text-gray-700 mb-2">환자 체중 (kg)</label>
+                            <input type="number" id="anesthesia-weight" placeholder="체중 입력" class="input-field">
+                        </div>
+                        <div>
+                            <label for="anesthesia-patient_status" class="block text-center text-xl font-semibold text-gray-700 mb-2">환자 상태</label>
+                            <select id="anesthesia-patient_status" class="input-field">
+                                <option value="healthy" selected>건강한 환자 (ASA 1-2)</option>
+                                <option value="cardiac">심장 질환 의심/확진</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card p-2 mb-6">
+                    <div class="flex flex-wrap justify-around border-b border-gray-200">
+                        <button class="tab-button active" data-anesthesia-tab="anesthesia-prepTab">마취 준비</button>
+                        <button class="tab-button" data-anesthesia-tab="anesthesia-emergencyTab">응급상황 대처</button>
+                        <button class="tab-button" data-anesthesia-tab="anesthesia-etTubeTab">ET Tube 계산기</button>
+                        <button class="tab-button" data-anesthesia-tab="anesthesia-dischargeTab">퇴원약 조제</button>
+                        <button class="tab-button" data-anesthesia-tab="anesthesia-protocolTab">노스판 프로토콜</button>
+                        <button class="tab-button" data-anesthesia-tab="anesthesia-educationTab">패치 보호자교육</button>
+                    </div>
+                </div>
+        
+                <div id="anesthesia-prepTab" class="tab-content active">
+                    <!-- Anesthesia Prep Content Here -->
+                </div>
+        
+                <div id="anesthesia-emergencyTab" class="tab-content">
+                    <!-- Anesthesia Emergency Content Here -->
+                </div>
+                
+                <!-- ... Other Anesthesia Content Panels ... -->
+
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- == TAB 3: EDUCATION DASHBOARD CONTENT               == -->
+        <!-- ====================================================== -->
+        <div id="education-wrapper" class="main-tab-content" style="display: none;">
+             <div class="max-w-5xl mx-auto">
+                <div class="bg-white p-6 rounded-2xl shadow-lg mb-8 border border-slate-200">
+                    <div class="flex flex-col sm:flex-row gap-6 items-center">
+                        <div class="w-full sm:w-1/2">
+                            <label for="education-globalPetName" class="block text-lg font-bold text-slate-700 mb-2 flex items-center">
+                                <i class="fas fa-paw mr-2 text-indigo-500"></i>환자 이름 (전체 연동)
+                            </label>
+                            <input type="text" id="education-globalPetName" class="w-full p-3 border-2 border-slate-300 rounded-lg" placeholder="아이 이름을 입력하면 모든 안내문에 적용됩니다.">
+                        </div>
+                        <div class="w-full sm:w-1/2">
+                             <button id="education-saveBtnTop" class="w-full save-button text-white font-bold py-3 px-6 rounded-lg shadow-md flex items-center justify-center text-lg">
+                                <i class="fas fa-camera-retro mr-3"></i> 현재 탭 이미지로 저장
+                            </button>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+                    <div class="border-b border-slate-200">
+                        <nav class="flex flex-col sm:flex-row">
+                            <button class="tab-button flex-1 text-center font-bold text-slate-600 hover:bg-slate-50 active" data-education-tab="stomatitis">
+                                만성 구내염
+                            </button>
+                            <button class="tab-button flex-1 text-center font-bold text-slate-600 hover:bg-slate-50" data-education-tab="cyclosporine">
+                                사이클로스포린
+                            </button>
+                            <button class="tab-button flex-1 text-center font-bold text-slate-600 hover:bg-slate-50" data-education-tab="norspan">
+                                노스판 패치
+                            </button>
+                            <button class="tab-button flex-1 text-center font-bold text-slate-600 hover:bg-slate-50" data-education-tab="gabapentin">
+                                가바펜틴
+                            </button>
+                        </nav>
+                    </div>
+        
+                    <div class="p-4 sm:p-6 md:p-8">
+                        <div id="education-stomatitisContent" class="tab-content active">
+                            <!-- Education Stomatitis Content Here -->
+                             <div class="chart-container"><canvas id="prognosisChart"></canvas></div>
+                        </div>
+        
+                        <div id="education-cyclosporineContent" class="tab-content">
+                            <!-- Education Cyclosporine Content Here -->
+                        </div>
+        
+                        <div id="education-norspanContent" class="tab-content">
+                            <!-- Education Norspan Content Here -->
+                        </div>
+        
+                        <div id="education-gabapentinContent" class="tab-content">
+                            <!-- Education Gabapentin Content Here -->
+                        </div>
+                    </div>
+                    
+                    <footer class="p-4 sm:p-6 md:p-8 mt-4 border-t border-slate-200 text-center">
+                       <!-- Education Footer Here -->
+                    </footer>
+                </div>
+                
+                <div class="mt-8">
+                    <button id="education-saveBtnBottom" class="w-full save-button text-white font-bold py-3 px-6 rounded-lg shadow-md flex items-center justify-center text-lg">
+                        <i class="fas fa-camera-retro mr-3"></i> 현재 탭 이미지로 저장
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- NOTE: All JavaScript logic should be placed here, just before the closing </body> tag. -->
+    <!-- It has been omitted from this HTML-only file as requested. -->
+    <script>
+        // All combined and scoped JavaScript would go here.
+    </script>
+</body>
+</html>
