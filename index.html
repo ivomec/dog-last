@@ -3,40 +3,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>금호동물병원 통합 대시보드</title>
+    <title>금호동물병원 통합 대시보드 (v2.0 - 수정)</title>
 
-    <!-- NOTE: Libraries for CSS and JS are intentionally omitted in this HTML-only file. -->
-    <!-- Libraries to be added later: TailwindCSS, html2canvas, jspdf, Chart.js, Google Fonts, Font Awesome -->
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <style>
+        /* --- Global & Main Tab Styles --- */
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f0f4f8; /* Unified background color */
+        }
+        .main-tab-nav {
+            display: flex;
+            justify-content: center;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 10px;
+            margin: 20px auto;
+            max-width: 95%;
+            flex-wrap: wrap;
+        }
+        .main-tab-button {
+            padding: 15px 25px;
+            border: none;
+            border-bottom: 4px solid transparent;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #555;
+            background-color: transparent;
+            flex-grow: 1;
+            text-align: center;
+        }
+        .main-tab-button.active, .main-tab-button:hover {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+        .main-tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .main-tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- STYLES FROM DENTAL CHART (Scoped with #dental-chart-wrapper) --- */
+        #dental-chart-wrapper {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f3ff;
+            color: #333;
+            -webkit-font-smoothing: antialiased;
+        }
+        #dental-chart-wrapper .container { max-width: 900px; margin: 20px auto; padding: 15px; }
+        @keyframes heartbeat { 0%{transform:scale(1)} 50%{transform:scale(1.07);text-shadow:0 0 15px rgba(255,82,82,.7)} 100%{transform:scale(1)} }
+        @keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.05);text-shadow:0 0 15px rgba(255,107,107,.7)} 100%{transform:scale(1)} }
+        
+        #dental-chart-wrapper .dashboard-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 25px; padding: 10px; }
+        #dental-chart-wrapper .nav-tab { padding: 12px 18px; border: none; border-radius: 12px; font-size: 1em; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background-color: #fff; color: #555; text-decoration: none; white-space: nowrap; }
+        #dental-chart-wrapper .nav-tab:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+        #dental-chart-wrapper .nav-tab.active { color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+        #dental-chart-wrapper #tab-main.active { background: linear-gradient(135deg, #81c7f5, #a092ed); }
+        #dental-chart-wrapper #tab-procedure.active { background: linear-gradient(135deg, #84fab0, #8fd3f4); } 
+        #dental-chart-wrapper #tab-healthcheck-small.active, #dental-chart-wrapper #tab-healthcheck-large.active { background: linear-gradient(135deg, #69f0ae, #00e5ff); }
+        #dental-chart-wrapper #tab-scaling.active { background: linear-gradient(135deg, #ff9a9e, #a1c4fd); }
+        #dental-chart-wrapper #tab-extraction-small.active, #dental-chart-wrapper #tab-extraction-large.active { background: linear-gradient(135deg, #89f7fe, #66a6ff); }
+        #dental-chart-wrapper #tab-addons-small.active, #dental-chart-wrapper #tab-addons-large.active { background: linear-gradient(135deg, #f8bbd0, #b39ddb); }
+        #dental-chart-wrapper #tab-perio.active { background: linear-gradient(135deg, #48c6ef, #6f86d6); }
+        #dental-chart-wrapper #tab-nerve.active { background: linear-gradient(135deg, #ff9a44, #ff5e62); }
+        #dental-chart-wrapper #tab-calculator.active, #dental-chart-wrapper #tab-estimate.active, #dental-chart-wrapper #tab-guardian-report.active { background: linear-gradient(135deg, #fbc2eb, #a6c1ee); }
+        
+        #dental-chart-wrapper .healthcheck-options { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+        #dental-chart-wrapper .option-btn { padding: 10px 20px; border: 2px solid #ccc; border-radius: 10px; font-size: 1em; font-weight: 700; cursor: pointer; background-color: #f8f9fa; color: #555; transition: all 0.3s ease; }
+        #dental-chart-wrapper .option-btn:hover { border-color: #007bff; color: #007bff; }
+        #dental-chart-wrapper .option-btn.active { background-color: #007bff; color: white; border-color: #007bff; box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3); }
+        
+        #dental-chart-wrapper .content-panel { display: none; }
+        #dental-chart-wrapper .content-panel.active { display: block; }
+        
+        #dental-chart-wrapper .info-page header { padding: 40px 20px; border-radius: 25px; text-align: center; margin-bottom: 30px; border: 3px solid white; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        #dental-chart-wrapper .info-page header h1 { margin: 0; font-size: 2.5em; font-weight: 900; }
+        #dental-chart-wrapper .info-page header p { margin: 10px 0 0; font-size: 1.2em; opacity: 0.95; }
+        #dental-chart-wrapper .info-page .info-section, #dental-chart-wrapper .info-page .pride-section, #dental-chart-wrapper .info-page .explanation-box, #dental-chart-wrapper .info-page .cost-grid, #dental-chart-wrapper .info-page .package-grid { margin-top: 20px; }
+        #dental-chart-wrapper .info-page .info-section h2, #dental-chart-wrapper .info-page .pride-section h2, #dental-chart-wrapper .info-page .explanation-box h2, #dental-chart-wrapper .info-page .important-notice h2 { font-size: 1.8em; font-weight: 700; margin-top: 0; margin-bottom: 20px; text-align: center; }
+        #dental-chart-wrapper .info-page .cost-grid, #dental-chart-wrapper .info-page .package-grid, #dental-chart-wrapper .info-page .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+        #dental-chart-wrapper .info-page .cost-card, #dental-chart-wrapper .info-page .package-card, #dental-chart-wrapper .info-page .info-card { background-color: #fff; border-radius: 20px; box-shadow: 0 6px 25px rgba(0,0,0,0.08); padding: 25px; display: flex; flex-direction: column; transition: transform 0.3s; border-top: 8px solid transparent;}
+        #dental-chart-wrapper .info-page .cost-card:hover, #dental-chart-wrapper .info-page .package-card:hover { transform: translateY(-8px); }
+        #dental-chart-wrapper .info-page .cost-card h3, #dental-chart-wrapper .info-page .package-card h3, #dental-chart-wrapper .info-page .info-card h3 { font-size: 1.6em; margin: 0 0 20px 0; text-align: center; font-weight: 700; }
+        #dental-chart-wrapper .info-page ul { list-style: none; padding: 0; flex-grow: 1; }
+        #dental-chart-wrapper .info-page .price-wrapper { text-align: center; border-top: 2px dashed #eee; padding-top: 20px; }
+        #dental-chart-wrapper .info-page .price-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 1.1em; }
+        #dental-chart-wrapper .info-page .price-label { color: #444; }
+        #dental-chart-wrapper .info-page .price-value { font-weight: 700; }
+        #dental-chart-wrapper .info-page .original-price { font-size: 1.2em; color: #aaa; text-decoration: line-through; display: block; }
+        #dental-chart-wrapper .info-page .discount-price { font-weight: 900; display: inline-block; margin-top: 5px; }
+        #dental-chart-wrapper .info-page .discount-price.heartbeat { font-size: 2.5em; color: #ff5252; animation: heartbeat 1.5s infinite; }
+        #dental-chart-wrapper .info-page .discount-price.pulse { font-size: 2.5em; color: #ff52a5; animation: pulse 2s infinite; }
+        #dental-chart-wrapper .info-page .explanation-box { padding: 25px; border-radius: 15px; border-left: 8px solid; }
+        #dental-chart-wrapper .info-page footer { text-align: center; padding: 30px 15px; margin-top: 30px; }
+        #dental-chart-wrapper .info-page .action-button { display: block; width: 80%; max-width: 400px; margin: 15px auto; padding: 18px; border-radius: 15px; text-decoration: none; color: white; font-size: 1.3em; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; }
+        #dental-chart-wrapper .info-page .action-button:hover { transform: scale(1.05); }
+        #dental-chart-wrapper .info-page .kakao-btn { background-color: #FEE500; color: #3C1E1E; }
+        #dental-chart-wrapper .info-page .tel-btn { background-color: #4CAF50; }
+        #dental-chart-wrapper .youtube-btn { background-color: #FF0000; margin-bottom: 25px; }
+        #dental-chart-wrapper .important-notice { background: #fff5f5; border-left: 8px solid #fa5252; padding: 25px; margin-bottom: 30px; border-radius:15px; }
+        #dental-chart-wrapper .important-notice h2 { color: #c92a2a; }
+        #dental-chart-wrapper .important-notice ol { padding-left: 25px; }
+        #dental-chart-wrapper .important-notice li { margin-bottom: 22px; line-height: 1.7; font-size: 1.05em; }
+        #dental-chart-wrapper .important-notice li::marker { font-weight: bold; }
+        #dental-chart-wrapper .important-notice strong { color: #d84315; }
+        #dental-chart-wrapper .important-notice .sub-list { padding-left: 20px; list-style-type: '✅ '; margin-top: 10px; font-size: 0.95em; color: #555;}
+        #dental-chart-wrapper .important-notice .sub-list li { margin-bottom: 8px;}
+        
+        #dental-chart-wrapper #content-main header { background: linear-gradient(135deg, #81c7f5, #a092ed); }
+        #dental-chart-wrapper #content-procedure header { background: linear-gradient(135deg, #84fab0, #8fd3f4); } 
+        #dental-chart-wrapper #content-healthcheck-small header, #dental-chart-wrapper #content-healthcheck-large header { background: linear-gradient(135deg, #69f0ae, #00e5ff); }
+        #dental-chart-wrapper #content-scaling header { background: linear-gradient(135deg, #ff9a9e, #a1c4fd); }
+        #dental-chart-wrapper #content-extraction-small header, #dental-chart-wrapper #content-extraction-large header { background: linear-gradient(135deg, #89f7fe, #66a6ff); }
+        #dental-chart-wrapper #content-addons-small header, #dental-chart-wrapper #content-addons-large header { background: linear-gradient(135deg, #f8bbd0, #b39ddb); }
+        #dental-chart-wrapper #content-perio header { background: linear-gradient(135deg, #48c6ef, #6f86d6); }
+        #dental-chart-wrapper #content-nerve header { background: linear-gradient(135deg, #ff9a44, #ff5e62); }
+        
+        #dental-chart-wrapper #content-extraction-small .price-value, #dental-chart-wrapper #content-extraction-large .price-value { color: #e64980; font-size: 1.2em; }
+        #dental-chart-wrapper #content-extraction-small .explanation-box, #dental-chart-wrapper #content-extraction-large .explanation-box { background: #fff0f6; border-left-color: #ff87c2; }
+        #dental-chart-wrapper #content-extraction-small .explanation-box h2, #dental-chart-wrapper #content-extraction-large .explanation-box h2 { color: #c2255c; }
+        
+        #dental-chart-wrapper .procedure-timeline { position: relative; padding: 20px 0; margin-top: 20px; }
+        #dental-chart-wrapper .procedure-timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 4px; background: #e9ecef; border-radius: 2px; }
+        #dental-chart-wrapper .timeline-item { position: relative; margin-bottom: 25px; padding-left: 55px; }
+        #dental-chart-wrapper .timeline-item::before { content: attr(data-step); position: absolute; left: 0; top: 0; width: 42px; height: 42px; border-radius: 50%; background: #84fab0; color: white; font-weight: bold; font-size: 1.2em; display: flex; align-items: center; justify-content: center; border: 4px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        #dental-chart-wrapper .timeline-item h3 { font-size: 1.4em; font-weight: 700; color: #00796b; margin-bottom: 8px; padding-top: 8px; }
+        #dental-chart-wrapper .timeline-item .timeline-content { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.07); line-height: 1.7; margin-top: 0; border-left: 5px solid #84fab0; }
+        #dental-chart-wrapper .timeline-item strong { color: #d84315; font-weight: 700; }
+        
+        #dental-chart-wrapper .calculator-common .capture-area { background-color: #fff; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6;}
+        #dental-chart-wrapper .calculator-common .patient-info-inputs { padding-bottom: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; border-bottom: 1px dashed #ccc; margin-bottom: 20px; }
+        #dental-chart-wrapper .calculator-common .dynamic-chart-title { font-size: 1.8em; color: #0056b3; text-align: center; margin: -10px 0 20px 0; padding: 15px; border-radius: 8px; background: linear-gradient(135deg, #e9ecef, #f8f9fa); font-weight: bold; }
+        #dental-chart-wrapper .calculator-common .main-container { display: flex; justify-content: space-between; width: 100%; gap: 20px; flex-wrap: wrap;}
+        #dental-chart-wrapper .calculator-common .table-section { width: 100%; }
+        @media (min-width: 1024px) { #dental-chart-wrapper .calculator-common .table-section { width: 49%; } }
+        #dental-chart-wrapper .calculator-common h2, #dental-chart-wrapper .calculator-common h3 { background-color: #0056b3; color: white; padding: 10px; text-align: center; font-size: 1.1em; border-radius: 5px; margin-top: 0; }
+        #dental-chart-wrapper .calculator-common h3 { background-color: #5a6268; font-size: 1em; }
+        #dental-chart-wrapper .calculator-common table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; } 
+        #dental-chart-wrapper .calculator-common td { border: 1px solid #ccc; padding: 2px; text-align: center; font-size: 0.85em; vertical-align: middle; transition: background-color 0.2s; }
+        #dental-chart-wrapper .calculator-common th { border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 0.85em; background-color: #FFC107; color: #333; vertical-align: middle; }
+        #dental-chart-wrapper .calculator-common .notes, #dental-chart-wrapper .calculator-common .procedure-select { -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; box-sizing: border-box; height: 30px; padding: 0 8px; border: 1px solid #ccc; border-radius: 3px; font-size: 1em; background-color: #fff; line-height: 28px; text-align: center; text-align-last: center; }
+        #dental-chart-wrapper .calculator-common .additional-treatments-column select { height: 34px; padding: 4px 8px; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 3px; font-size: 1em; background-color: #fff; text-align: center; text-align-last: center; }
+        #dental-chart-wrapper .calculator-common td:has(> select) { position: relative; }
+        #dental-chart-wrapper .calculator-common td:has(> select)::after { content: '▼'; font-size: 12px; color: #555; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+        #dental-chart-wrapper .calculator-common .cost { text-align: right; font-weight: bold; min-width: 80px; padding-right: 5px; }
+        #dental-chart-wrapper .calculator-common tr.row-highlight > td { font-weight: bold; }
+        #dental-chart-wrapper .calculator-common .main-container tr.row-highlight > td:first-child { background-color: #f0f0f0; color: #333; }
+        #dental-chart-wrapper .calculator-common .main-container tr.row-highlight > td:last-child { border-right: 3px solid #0056b3; }
+        #dental-chart-wrapper .calculator-common .tooth-type { vertical-align: middle !important; font-weight: bold; }
+        #dental-chart-wrapper .calculator-common .additional-treatments-container { display: flex; gap: 20px; flex-wrap: wrap; }
+        #dental-chart-wrapper .calculator-common .additional-treatments-column { flex: 1; min-width: calc(50% - 10px); }
+        #dental-chart-wrapper .calculator-common .additional-treatments-column table { table-layout: auto; }
+        #dental-chart-wrapper .calculator-common .additional-treatments-column tr.selected-row > td { background-color: #e7f5ff; }
+        #dental-chart-wrapper .calculator-common .total-cost-container { text-align:center; margin-top:40px; padding:25px; background-color:#fff; border:3px solid #0056b3; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+        #dental-chart-wrapper .calculator-common .total-cost-container h2 { font-size: 1.6em; color: #0056b3; margin: 0 0 15px 0; background-color: transparent; }
+        #dental-chart-wrapper .calculator-common .cost-summary-table { width: 100%; border-collapse: collapse; }
+        #dental-chart-wrapper .calculator-common .cost-summary-table td { padding: 12px 8px; font-size: 1.2em; border-top: 1px solid #eee; }
+        #dental-chart-wrapper .calculator-common .cost-summary-table td:first-child { text-align: left; font-weight: bold; color: #333; width: 50%; }
+        #dental-chart-wrapper .calculator-common .cost-summary-table td:last-child { text-align: right; font-weight: bold; font-family: monospace, sans-serif; }
+        #dental-chart-wrapper .calculator-common .cost-summary-table .total-row td { font-size: 1.5em; color: #c82333; border-top: 2px solid #333; padding-top: 15px; }
+        #dental-chart-wrapper .calculator-common .treatment-summary-section { margin-top: 40px; padding: 25px; background: linear-gradient(135deg, #e0f7fa, #fffdef); border: 2px solid #00acc1; border-radius: 16px; box-shadow: 0 8px 25px rgba(0, 121, 107, 0.1); }
+        #dental-chart-wrapper .calculator-common .treatment-summary-section h2 { font-size: 1.8em; color: #00796b; margin: 0 0 25px 0; text-align: center; background-color: transparent; font-weight: bold; }
+        #dental-chart-wrapper .calculator-common .summary-container { display: flex; gap: 25px; flex-wrap: wrap; }
+        #dental-chart-wrapper .calculator-common .summary-box { flex: 1; min-width: 300px; background-color: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.07); }
+        #dental-chart-wrapper .calculator-common .summary-box h3 { font-size: 1.4em; color: white; margin: -20px -20px 20px -20px; padding: 12px 20px; border-radius: 12px 12px 0 0; text-align: center; }
+        #dental-chart-wrapper .calculator-common .summary-box:first-child h3 { background-color: #ef5350; }
+        #dental-chart-wrapper .calculator-common .summary-box:last-child h3 { background-color: #42a5f5; }
+        #dental-chart-wrapper .calculator-common .summary-table { width: 100%; border-collapse: collapse; }
+        #dental-chart-wrapper .calculator-common .summary-table td { padding: 12px 5px; border-bottom: 1px solid #eee; text-align: left; font-size: 1.05em; border-left: none; border-right: none; }
+        #dental-chart-wrapper .calculator-common .summary-table .summary-item { color: #333; }
+        #dental-chart-wrapper .calculator-common .summary-table .summary-count { text-align: right; font-weight: bold; font-size: 1.1em; }
+        #dental-chart-wrapper .calculator-common .summary-table .summary-total td { font-weight: bold; color: #c82333; border-top: 2px solid #333; font-size: 1.1em; }
+        #dental-chart-wrapper .calculator-common .guardian-comment-section { margin-top: 40px; padding: 25px; background-color: #f3f9ff; border: 2px solid #81c784; border-radius: 16px; }
+        #dental-chart-wrapper .calculator-common .guardian-comment-section h2 { font-size: 1.8em; color: #388e3c; margin: 0 0 25px 0; text-align: center; font-weight: bold; }
+        #dental-chart-wrapper .calculator-common .comment-box { background-color: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; border-left: 5px solid #ffa726; }
+        #dental-chart-wrapper .calculator-common .comment-box h3 { font-size: 1.4em; color: #f57c00; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #ffe0b2; }
+        #dental-chart-wrapper .calculator-common .comment-box ul { list-style-type: '✅'; padding-left: 25px; margin: 0; }
+        #dental-chart-wrapper .calculator-common .comment-box li { margin-bottom: 10px; font-size: 1.05em; line-height: 1.8; color: #444; }
+        #dental-chart-wrapper .calculator-common .thank-you-message { text-align: center; font-style: italic; color: #555; margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ccc; }
+        #dental-chart-wrapper .calculator-common .disclaimer-box { margin-top: 40px; padding: 25px; background-color: #fff9e6; border: 2px solid #ffc107; border-radius: 10px; text-align: center; box-shadow: 0 4px 15px rgba(255,193,7,0.2); }
+        #dental-chart-wrapper .calculator-common .disclaimer-box h3 { color: #b95000; font-size: 1.4em; margin: 0 0 15px 0; }
+        #dental-chart-wrapper .calculator-common .disclaimer-box p { line-height: 1.8; font-size: 1em; color: #555; margin: 0; }
+        #dental-chart-wrapper .calculator-common .export-container { text-align:center; margin-top:20px; padding:20px; background-color:#f8f9fa; border-radius:8px; }
+        #dental-chart-wrapper .calculator-common .export-container button { background-color: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin: 0 10px; transition: background-color 0.3s, transform 0.2s; }
+        #dental-chart-wrapper .calculator-common .export-container button:hover { background-color: #0056b3; transform: translateY(-2px); }
+        #dental-chart-wrapper .calculator-common .export-container button.save-data-btn { background-color: #28a745; }
+        #dental-chart-wrapper .calculator-common .export-container button.save-data-btn:hover { background-color: #218838; }
+        #dental-chart-wrapper .calculator-common .export-container button.load-data-btn { background-color: #ffc107; color: #212529; }
+        #dental-chart-wrapper .calculator-common .export-container button.load-data-btn:hover { background-color: #e0a800; }
+
+        /* --- STYLES FROM EDUCATION DASHBOARD (Scoped with #education-wrapper) --- */
+        #education-wrapper { font-family: 'Noto Sans KR', sans-serif; background-color: #f1f5f9; }
+        #education-wrapper .tab-button {
+            transition: all 0.3s ease;
+            border-bottom: 4px solid transparent;
+            padding: 1rem 0.5rem;
+        }
+        #education-wrapper .tab-button.active {
+            border-color: #4f46e5;
+            color: #4f46e5;
+            background-color: #eef2ff;
+        }
+        #education-wrapper .tab-content {
+            display: none;
+        }
+        #education-wrapper .tab-content.active {
+            display: block;
+        }
+        #education-wrapper .save-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        #education-wrapper .save-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.15);
+        }
+        #education-wrapper .gradient-text {
+            background: linear-gradient(to right, #4f46e5, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #education-wrapper .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            max-width: 300px;
+            margin: auto;
+        }
+
+        /* --- STYLES FROM ANESTHESIA DASHBOARD (Scoped with #anesthesia-wrapper) --- */
+        #anesthesia-wrapper { font-family: 'Noto Sans KR', sans-serif; }
+        #anesthesia-wrapper .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
+        #anesthesia-wrapper .input-field { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1.5rem; text-align: center; font-weight: 700; }
+        #anesthesia-wrapper .large-interactive-field {
+            width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1.25rem; text-align: center; font-weight: 600;
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em;
+        }
+        #anesthesia-wrapper .large-interactive-field[type="number"] { -moz-appearance: textfield; }
+        #anesthesia-wrapper .large-interactive-field[type="number"]::-webkit-inner-spin-button,
+        #anesthesia-wrapper .large-interactive-field[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
+
+        #anesthesia-wrapper .step-card { border-left: 4px solid #2563eb; background-color: #eff6ff; }
+        #anesthesia-wrapper .warning-card { border-left: 4px solid #f59e0b; background-color: #fffbeb; }
+        #anesthesia-wrapper .emergency-card { border-left: 4px solid #ef4444; background-color: #fee2e2; }
+        #anesthesia-wrapper .result-value { font-weight: 700; color: #1e40af; }
+        #anesthesia-wrapper .section-title { font-size: 1.5rem; font-weight: 700; color: #1f2937; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        #anesthesia-wrapper .tab-button { padding: 0.75rem 1rem; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; font-size: 0.875rem; }
+        @media (min-width: 640px) { #anesthesia-wrapper .tab-button { font-size: 1rem; } }
+        #anesthesia-wrapper .tab-button.active { color: #2563eb; border-bottom-color: #2563eb; }
+        #anesthesia-wrapper .tab-content { display: none; }
+        #anesthesia-wrapper .tab-content.active { display: block; }
+        #anesthesia-wrapper .info-box { background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; color: #4b5563; }
+        #anesthesia-wrapper .result-box { padding: 1.5rem; margin-top: 1.5rem; border-radius: 0.5rem; text-align: center; }
+        #anesthesia-wrapper .result-box-weight { background-color: #e0f2fe; border-left: 5px solid #0ea5e9; }
+        #anesthesia-wrapper .result-box-trachea { background-color: #dcfce7; border-left: 5px solid #22c55e; }
+        
+        #anesthesia-wrapper input[type="date"]::-webkit-calendar-picker-indicator,
+        #anesthesia-wrapper input[type="time"]::-webkit-calendar-picker-indicator {
+            cursor: pointer; filter: invert(0.5) sepia(1) saturate(5) hue-rotate(200deg);
+        }
+        @media print {
+            body { -webkit-print-color-adjust: exact; color-adjust: exact; background-color: #ffffff; }
+            .no-print { display: none; }
+            #anesthesia-wrapper .card { box-shadow: none; border: none; }
+            #anesthesia-wrapper #anesthesia-educationTab input[type="text"], 
+            #anesthesia-wrapper #anesthesia-educationTab input[type="date"], 
+            #anesthesia-wrapper #anesthesia-educationTab input[type="time"] {
+                border: none !important;
+                background-color: transparent !important; padding: 0.5rem 0 !important; font-size: 1rem; color: #000000;
+            }
+            #anesthesia-wrapper #anesthesia-educationTab #anesthesia-removalInfo-edu { border: 2px solid #facc15 !important; }
+            #anesthesia-wrapper #anesthesia-educationTab #anesthesia-education-capture-area { box-shadow: none !important; border: none !important; }
+        }
+    </style>
 </head>
-<body class="p-4 md:p-6" style="font-family: 'Noto Sans KR', sans-serif; background-color: #f0f4f8;">
-
+<body class="p-4 md:p-6">
     <header class="text-center mb-4">
-        <h1 style="font-size: 2.25rem; font-weight: 800; color: #1f2937;">💖 금호동물병원 통합 대시보드 💖</h1>
-        <p style="margin-top: 0.5rem; font-size: 1.125rem; color: #4b5563;">환자 관리의 모든 것을 한 곳에서.</p>
+        <h1 class="text-4xl font-extrabold text-gray-800">💖 금호동물병원 통합 대시보드 💖</h1>
+        <p class="mt-2 text-lg text-gray-600">환자 관리의 모든 것을 한 곳에서.</p>
     </header>
 
-    <!-- Main Tab Navigation -->
-    <nav style="display: flex; justify-content: center; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 10px; margin: 20px auto; max-width: 95%;">
-        <button class="main-tab-button active" data-target="dental-chart-wrapper" style="padding: 15px 25px; border: none; font-size: 1.1em; font-weight: 700; cursor: pointer; color: #4f46e5; border-bottom: 4px solid #4f46e5; background-color: #eef2ff; flex-grow: 1; text-align: center;">🦷치과 차트</button>
-        <button class="main-tab-button" data-target="anesthesia-wrapper" style="padding: 15px 25px; border: none; font-size: 1.1em; font-weight: 700; cursor: pointer; color: #555; border-bottom: 4px solid transparent; background-color: transparent; flex-grow: 1; text-align: center;">💓마취 대시보드</button>
-        <button class="main-tab-button" data-target="education-wrapper" style="padding: 15px 25px; border: none; font-size: 1.1em; font-weight: 700; cursor: pointer; color: #555; border-bottom: 4px solid transparent; background-color: transparent; flex-grow: 1; text-align: center;">🎓보호자 교육</button>
+    <nav class="main-tab-nav">
+        <button class="main-tab-button active" data-target="dental-chart-wrapper"><i class="fas fa-tooth mr-2"></i>치과 차트</button>
+        <button class="main-tab-button" data-target="anesthesia-wrapper"><i class="fas fa-heart-pulse mr-2"></i>마취 대시보드</button>
+        <button class="main-tab-button" data-target="education-wrapper"><i class="fas fa-user-graduate mr-2"></i>보호자 교육</button>
     </nav>
     
     <main>
         <!-- ====================================================== -->
         <!-- == TAB 1: DENTAL CHART CONTENT                      == -->
         <!-- ====================================================== -->
-        <div id="dental-chart-wrapper" class="main-tab-content active" style="display: block;">
+        <div id="dental-chart-wrapper" class="main-tab-content active">
             <nav class="dashboard-nav">
                 <a href="#" class="nav-tab" id="tab-main" data-target="content-main">💖 병원소개</a>
                 <a href="#" class="nav-tab" id="tab-procedure" data-target="content-procedure">🏥 수술 과정</a>
-                <a href="#" class="nav-tab" id="tab-healthcheck-small" data-target="content-healthcheck-small">🩺 건강검진(&lt;20kg)</a>
+                <a href="#" class="nav-tab" id="tab-healthcheck-small" data-target="content-healthcheck-small">🩺 건강검진(<20kg)</a>
                 <a href="#" class="nav-tab" id="tab-healthcheck-large" data-target="content-healthcheck-large">🩺 건강검진(20kg≥)</a>
                 <a href="#" class="nav-tab" id="tab-scaling" data-target="content-scaling">🦷 스케일링</a>
-                <a href="#" class="nav-tab" id="tab-extraction-small" data-target="content-extraction-small">😿 수술비용(&lt;10kg)</a>
+                <a href="#" class="nav-tab" id="tab-extraction-small" data-target="content-extraction-small">😿 수술비용(<10kg)</a>
                 <a href="#" class="nav-tab" id="tab-extraction-large" data-target="content-extraction-large">😿 수술비용(10kg≥)</a>
-                <a href="#" class="nav-tab" id="tab-addons-small" data-target="content-addons-small">💊 추가처치(&lt;10kg)</a>
+                <a href="#" class="nav-tab" id="tab-addons-small" data-target="content-addons-small">💊 추가처치(<10kg)</a>
                 <a href="#" class="nav-tab" id="tab-addons-large" data-target="content-addons-large">💊 추가처치(10kg≥)</a>
                 <a href="#" class="nav-tab" id="tab-nerve" data-target="content-nerve">❤️‍🩹 신경 및 보존 치료</a>
                 <a href="#" class="nav-tab" id="tab-calculator" data-target="content-calculator">🧮 치료비 계산기</a>
@@ -47,14 +336,165 @@
             <div class="dashboard-content">
         
                 <div id="content-main" class="content-panel info-page">
-                    <!-- Dental Main Content Here -->
+                    <div class="container">
+                        <header>
+                            <h1 id="main-header-title"></h1>
+                            <p id="main-header-subtitle"></p>
+                        </header>
+                        <main>
+                            <section class="info-section">
+                                <h2>🏥 병원 안내 🏥</h2>
+                                <div class="info-grid">
+                                </div>
+                            </section>
+                            <section class="pride-section" id="main-pride" style="background:#e3f2fd; padding: 25px; border-radius: 20px; margin-top: 30px;"></section>
+                            <section class="important-notice" style="margin-top: 30px;">
+                                <h2 id="main-notice-title"></h2>
+                                <ol id="main-notice-list"></ol>
+                            </section>
+                        </main>
+                        <footer id="main-footer"></footer>
+                    </div>
                 </div>
                 
                 <div id="content-procedure" class="content-panel info-page">
-                    <!-- Dental Procedure Content Here -->
+                    <div class="container">
+                        <header>
+                            <h1>🏥 우리 아이 치과 수술, 이렇게 진행돼요!</h1>
+                            <p>보호자님께서 안심하실 수 있도록, 모든 과정을 투명하게 안내해 드립니다 ❤️</p>
+                        </header>
+                        <main>
+                            <a href="https://www.youtube.com/watch?v=_mk6qOF7OEs" target="_blank" class="action-button youtube-btn">🎥 영상 보러가기</a>
+                            <div class="procedure-timeline">
+                                <!-- JS Populated -->
+                            </div>
+                        </main>
+                    </div>
                 </div>
         
-                <!-- ... Other Dental Content Panels ... -->
+                <div id="content-healthcheck-small" class="content-panel info-page">
+                    <div class="container">
+                         <header>
+                            <h1 id="healthcheck-header-title-small"></h1>
+                            <p id="healthcheck-header-subtitle-small"></p>
+                         </header>
+                         <a href="https://www.youtube.com/watch?v=-EjT1oZrvJA" target="_blank" class="action-button youtube-btn">🎥 영상 보러가기</a>
+                         <div class="healthcheck-options">
+                            <button class="option-btn active" id="btn-healthcheck-with-4dx-small">✅ 사상충 검사 포함</button>
+                            <button class="option-btn" id="btn-healthcheck-without-4dx-small">❌ 사상충 검사 제외</button>
+                         </div>
+                         <div class="package-grid" id="healthcheck-packages-small"></div>
+                         <div class="explanation-box" style="background:#f1f8e9;border-left-color:#aed581" id="healthcheck-explanation-box-small">
+                         </div>
+                    </div>
+                </div>
+                
+                <div id="content-healthcheck-large" class="content-panel info-page">
+                    <div class="container">
+                         <header>
+                            <h1 id="healthcheck-header-title-large"></h1>
+                            <p id="healthcheck-header-subtitle-large"></p>
+                         </header>
+                         <a href="https://www.youtube.com/watch?v=-EjT1oZrvJA" target="_blank" class="action-button youtube-btn">🎥 영상 보러가기</a>
+                         <div class="healthcheck-options">
+                            <button class="option-btn active" id="btn-healthcheck-with-4dx-large">✅ 사상충 검사 포함</button>
+                            <button class="option-btn" id="btn-healthcheck-without-4dx-large">❌ 사상충 검사 제외</button>
+                         </div>
+                         <div class="package-grid" id="healthcheck-packages-large"></div>
+                         <div class="explanation-box" id="large-dog-explanation" style="background:#fff3e0;border-left-color:#ffb74d; margin-top: 25px;">
+                            <h2 style="color: #fb8c00;">덩치 큰 댕댕이들을 위한 안내 🐾</h2>
+                            <div id="large-dog-explanation-content"></div>
+                         </div>
+                         <div class="explanation-box" style="background:#f1f8e9;border-left-color:#aed581" id="healthcheck-explanation-box-large">
+                         </div>
+                    </div>
+                </div>
+        
+                <div id="content-scaling" class="content-panel info-page">
+                    <div class="container">
+                         <header>
+                            <h1 id="scaling-header-title"></h1>
+                            <p id="scaling-header-subtitle"></p>
+                         </header>
+                         <div class="package-grid" id="scaling-packages"></div>
+                         <div class="explanation-box" style="background:#fffde7;border-left-color:#fdd835">
+                            <h2 id="scaling-explanation-title"></h2>
+                            <div id="scaling-explanation-content"></div>
+                         </div>
+                    </div>
+                </div>
+                
+                <div id="content-extraction-small" class="content-panel info-page">
+                    <div class="container">
+                        <header>
+                            <h1 id="extraction-header-title-small"></h1>
+                            <p id="extraction-header-subtitle-small"></p>
+                        </header>
+                        <img src="https://raw.githubusercontent.com/ivomec/image/main/%EC%B9%98%EC%8B%9D1.jpg?raw=true" alt="강아지 치아 모식도" style="width: 100%; max-width: 800px; margin: 0 auto 25px; display: block; border-radius: 15px;">
+                        <div class="cost-grid" id="extraction-costs-small"></div>
+                        <div class="explanation-box">
+                            <h2 id="extraction-explanation-title-small"></h2>
+                            <div id="extraction-explanation-content-small"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="content-extraction-large" class="content-panel info-page">
+                    <div class="container">
+                        <header>
+                            <h1 id="extraction-header-title-large"></h1>
+                            <p id="extraction-header-subtitle-large"></p>
+                        </header>
+                         <img src="https://raw.githubusercontent.com/ivomec/image/main/%EC%B9%98%EC%8B%9D1.jpg?raw=true" alt="강아지 치아 모식도" style="width: 100%; max-width: 800px; margin: 0 auto 25px; display: block; border-radius: 15px;">
+                        <div class="cost-grid" id="extraction-costs-large"></div>
+                        <div class="explanation-box">
+                            <h2 id="extraction-explanation-title-large"></h2>
+                            <div id="extraction-explanation-content-large"></div>
+                        </div>
+                    </div>
+                </div>
+        
+                <div id="content-addons-small" class="content-panel info-page">
+                    <div class="container">
+                         <header>
+                            <h1 id="addons-header-title-small"></h1>
+                            <p id="addons-header-subtitle-small"></p>
+                         </header>
+                         <div class="cost-grid" id="addons-costs-small"></div>
+                         <div class="explanation-box" style="background:#e1f5fe;border-left-color:#4fc3f7">
+                            <h2 id="addons-explanation-title-small"></h2>
+                            <div id="addons-explanation-content-small"></div>
+                         </div>
+                    </div>
+                </div>
+        
+                <div id="content-addons-large" class="content-panel info-page">
+                    <div class="container">
+                         <header>
+                            <h1 id="addons-header-title-large"></h1>
+                            <p id="addons-header-subtitle-large"></p>
+                         </header>
+                         <div class="cost-grid" id="addons-costs-large"></div>
+                         <div class="explanation-box" style="background:#e1f5fe;border-left-color:#4fc3f7">
+                            <h2 id="addons-explanation-title-large"></h2>
+                            <div id="addons-explanation-content-large"></div>
+                         </div>
+                    </div>
+                </div>
+        
+                <div id="content-nerve" class="content-panel info-page">
+                    <div class="container">
+                        <header>
+                            <h1 id="nerve-header-title"></h1>
+                            <p id="nerve-header-subtitle"></p>
+                        </header>
+                        <div class="cost-grid" id="nerve-costs"></div>
+                        <div class="explanation-box" style="background:#e3fafc;border-left-color:#66d9e8">
+                            <h2 id="nerve-explanation-title"></h2>
+                            <div id="nerve-explanation-content"></div>
+                        </div>
+                    </div>
+                </div>
                 
                 <div id="content-calculator" class="content-panel calculator-common">
                      <div id="Calculator-Page">
@@ -70,11 +510,13 @@
                                     <h2>우 상악 & 하악</h2>
                                     <h3 class="table-title-upper-right">우 상악 (100번대)</h3>
                                     <table class="table-upper-right">
+                                        <colgroup><col style="width: 12%;"><col style="width: 8%;"><col style="width: 35%;"><col style="width: 25%;"><col style="width: 15%;"><col style="width: 5%;"></colgroup>
                                         <thead><tr><th></th><th>번호</th><th>특이사항</th><th>시술 선택</th><th>비용</th><th></th></tr></thead>
                                         <tbody></tbody>
                                     </table>
                                     <h3 class="table-title-lower-right">우 하악 (400번대)</h3>
                                     <table class="table-lower-right">
+                                        <colgroup><col style="width: 12%;"><col style="width: 8%;"><col style="width: 35%;"><col style="width: 25%;"><col style="width: 15%;"><col style="width: 5%;"></colgroup>
                                         <thead><tr><th></th><th>번호</th><th>특이사항</th><th>시술 선택</th><th>비용</th><th></th></tr></thead>
                                         <tbody></tbody>
                                     </table>
@@ -83,17 +525,63 @@
                                     <h2>좌 상악 & 하악</h2>
                                     <h3 class="table-title-upper-left">좌 상악 (200번대)</h3>
                                     <table class="table-upper-left">
+                                        <colgroup><col style="width: 12%;"><col style="width: 8%;"><col style="width: 35%;"><col style="width: 25%;"><col style="width: 15%;"><col style="width: 5%;"></colgroup>
                                         <thead><tr><th></th><th>번호</th><th>특이사항</th><th>시술 선택</th><th>비용</th><th></th></tr></thead>
                                         <tbody></tbody>
                                     </table>
                                     <h3 class="table-title-lower-left">좌 하악 (300번대)</h3>
                                     <table class="table-lower-left">
+                                        <colgroup><col style="width: 12%;"><col style="width: 8%;"><col style="width: 35%;"><col style="width: 25%;"><col style="width: 15%;"><col style="width: 5%;"></colgroup>
                                         <thead><tr><th></th><th>번호</th><th>특이사항</th><th>시술 선택</th><th>비용</th><th></th></tr></thead>
                                         <tbody></tbody>
                                     </table>
                                 </div>
                             </div>
-                            <!-- ... Rest of Calculator HTML ... -->
+                            <div class="additional-treatments" style="margin-top:30px;">
+                                <h2>💉 추가 처치 내역</h2>
+                                <div class="additional-treatments-container">
+                                    <div class="additional-treatments-column">
+                                        <table style="table-layout: auto;">
+                                            <colgroup><col style="width: 35%;"><col style="width: 45%;"><col style="width: 20%;"></colgroup>
+                                            <thead><tr><th>항목</th><th>선택</th><th>비용</th></tr></thead>
+                                            <tbody class="additional-tbody-1"></tbody>
+                                        </table>
+                                    </div>
+                                    <div class="additional-treatments-column">
+                                        <table style="table-layout: auto;">
+                                            <colgroup><col style="width: 35%;"><col style="width: 45%;"><col style="width: 20%;"></colgroup>
+                                            <thead><tr><th>항목</th><th>선택</th><th>비용</th></tr></thead>
+                                            <tbody class="additional-tbody-2"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="total-cost-container">
+                                <h2>💰 전체 비용 내역</h2>
+                                <table class="cost-summary-table">
+                                    <tbody>
+                                        <tr>
+                                            <td>🦷 치과 수술 비용</td>
+                                            <td class="dental-surgery-cost-display">₩0</td>
+                                        </tr>
+                                        <tr>
+                                            <td>➕ 추가 처치 비용</td>
+                                            <td class="additional-treatment-cost-display">₩0</td>
+                                        </tr>
+                                        <tr class="total-row">
+                                            <td>합계</td>
+                                            <td class="total-cost-display">₩0</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="treatment-summary-section">
+                                <h2 class="summary-title">📊 우리 <span class="summary-patient-name">환자</span>의 오늘 치료 기록 요약 📊</h2>
+                                <div class="summary-container">
+                                    <div class="summary-box"><h3>🔥 발치/제거 수술</h3><table class="extraction-summary-table summary-table"><tbody></tbody></table></div>
+                                    <div class="summary-box"><h3>🩹 치주/보존 치료</h3><table class="treatment-summary-table summary-table"><tbody></tbody></table></div>
+                                </div>
+                            </div>
                          </div>
                         <div class="export-container"><button class="save-data-btn">💾 기록 저장</button><button class="load-data-btn">📂 기록 불러오기</button><input type="file" class="load-data-input" accept=".json" style="display: none;"><button class="export-png-btn">🖼️ PNG 저장</button><button class="export-pdf-btn">📄 PDF 저장</button></div>
                     </div>
@@ -118,10 +606,10 @@
         <!-- ====================================================== -->
         <!-- == TAB 2: ANESTHESIA DASHBOARD CONTENT              == -->
         <!-- ====================================================== -->
-        <div id="anesthesia-wrapper" class="main-tab-content" style="display: none;">
+        <div id="anesthesia-wrapper" class="main-tab-content">
             <div class="max-w-7xl mx-auto">
                 <header class="text-center mb-6">
-                    <h1 class="text-3xl md:text-4xl font-bold text-gray-800">통합 마취 대시보드</h1>
+                    <h1 class="text-3xl md:text-4xl font-bold text-gray-800">통합 마취 대시보드 v3.9 (기능 개선)</h1>
                     <p class="mt-2 text-lg text-gray-600">금호동물병원 실전 워크플로우 (Anes AI)</p>
                 </header>
         
@@ -143,32 +631,343 @@
         
                 <div class="card p-2 mb-6">
                     <div class="flex flex-wrap justify-around border-b border-gray-200">
-                        <button class="tab-button active" data-anesthesia-tab="anesthesia-prepTab">마취 준비</button>
-                        <button class="tab-button" data-anesthesia-tab="anesthesia-emergencyTab">응급상황 대처</button>
-                        <button class="tab-button" data-anesthesia-tab="anesthesia-etTubeTab">ET Tube 계산기</button>
-                        <button class="tab-button" data-anesthesia-tab="anesthesia-dischargeTab">퇴원약 조제</button>
-                        <button class="tab-button" data-anesthesia-tab="anesthesia-protocolTab">노스판 프로토콜</button>
-                        <button class="tab-button" data-anesthesia-tab="anesthesia-educationTab">패치 보호자교육</button>
+                        <button class="tab-button active" data-anesthesia-tab="anesthesia-prepTab"><i class="fas fa-pills mr-2"></i>마취 준비</button>
+                        <button class="tab-button" data-anesthesia-tab="anesthesia-emergencyTab"><i class="fas fa-heart-pulse mr-2"></i>응급상황 대처</button>
+                        <button class="tab-button" data-anesthesia-tab="anesthesia-etTubeTab"><i class="fas fa-ruler-vertical mr-2"></i>ET Tube 계산기</button>
+                        <button class="tab-button" data-anesthesia-tab="anesthesia-dischargeTab"><i class="fas fa-file-prescription mr-2"></i>퇴원약 조제</button>
+                        <button class="tab-button" data-anesthesia-tab="anesthesia-protocolTab"><i class="fas fa-book-medical mr-2"></i>노스판 프로토콜</button>
+                        <button class="tab-button" data-anesthesia-tab="anesthesia-educationTab"><i class="fas fa-user-graduate mr-2"></i>패치 보호자교육</button>
                     </div>
                 </div>
         
                 <div id="anesthesia-prepTab" class="tab-content active">
-                    <!-- Anesthesia Prep Content Here -->
+                    <div class="no-print p-4 mb-4 bg-gray-100 rounded-lg flex justify-center">
+                        <button id="export-prep-sheet-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center">
+                            <i class="fas fa-camera mr-2"></i> 마취 준비 시트 이미지로 저장
+                        </button>
+                    </div>
+        
+                    <div class="card p-6 md:p-8">
+                        <h2 class="section-title">최종 선택 ET Tube</h2>
+                        <div id="anesthesia-et_tube_selection_display" class="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg mb-6 text-center">
+                            <p class="text-gray-700">ET Tube가 아직 선택되지 않았습니다. 'ET Tube 계산기' 탭에서 기록해주세요.</p>
+                        </div>
+        
+                        <h2 class="section-title">수술 전 약물 준비 (Pre-Anesthetic Drug Prep)</h2>
+                        <div class="info-box mb-4"><p><strong>목표:</strong> 마취에 필요한 모든 주사 약물과 수액을 미리 정확한 용량으로 준비하여, 마취 과정 중 실수를 방지하고 신속하게 대처합니다.</p></div>
+                        <div id="anesthesia-pre_op_drugs_result" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center">...</div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="card p-6 md:p-8">
+                            <h2 class="section-title">국소마취 (너브 블락) 계산기</h2>
+                            <div class="info-box mb-4"><p><strong>목표:</strong> 수술 부위의 통증 신호를 원천적으로 차단하여 호흡마취제 요구량을 줄이고, 수술 후 통증을 최소화합니다.</p></div>
+                            <div id="anesthesia-dog_nerve_block_result" class="space-y-4">...</div>
+                        </div>
+                        <div class="card p-6 md:p-8">
+                            <h2 class="section-title">LK-CRI 계산기</h2>
+                            <div class="info-box mb-4"><p><strong>목표:</strong> 리도카인(L)과 케타민(K)을 지속적으로 정맥 주입(CRI)하여, 마취 중 통증 자극을 억제하고 마취를 안정적으로 유지합니다.</p></div>
+                            <div id="anesthesia-lk_cri_calc_result" class="space-y-4">...</div>
+                        </div>
+                    </div>
+                    <div class="card p-6 md:p-8">
+                        <h2 class="section-title">마취 워크플로우</h2>
+                        <div id="anesthesia-workflow_steps" class="space-y-4">...</div>
+                    </div>
+                    <div class="no-print p-4 mt-6 bg-gray-100 rounded-lg flex justify-center">
+                         <button id="export-prep-sheet-btn-bottom" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center">
+                            <i class="fas fa-camera mr-2"></i> 마취 준비 시트 이미지로 저장
+                        </button>
+                    </div>
                 </div>
         
                 <div id="anesthesia-emergencyTab" class="tab-content">
-                    <!-- Anesthesia Emergency Content Here -->
+                    <div class="card p-6 md:p-8">
+                        <h2 class="section-title text-red-600"><i class="fas fa-triangle-exclamation mr-2"></i>마취 중 문제 해결 (Troubleshooting)</h2>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="emergency-card p-4">
+                                <h3 class="font-bold text-lg text-red-800">저혈압 & 서맥</h3>
+                                <div id="anesthesia-hypotension_protocol">...</div>
+                                <div id="anesthesia-bradycardia_protocol" class="mt-4">...</div>
+                            </div>
+                            <div class="emergency-card p-4">
+                                <h3 class="font-bold text-lg text-red-800">심정지 (CPA) 프로토콜 (RECOVER 기반)</h3>
+                                <div id="anesthesia-cpa_protocol">...</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+        
+                <div id="anesthesia-etTubeTab" class="tab-content">
+                    <div class="card p-6 md:p-8">
+                        <h2 class="section-title">최종 선택 ET Tube 기록</h2>
+                         <div class="bg-gray-100 p-4 rounded-lg mb-8 border border-gray-300">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                <div>
+                                    <label for="anesthesia-selectedEtTubeSize" class="block text-sm font-bold text-gray-700 mb-1">✔️ 최종 사이즈 (ID)</label>
+                                    <input type="number" id="anesthesia-selectedEtTubeSize" step="0.5" placeholder="예: 4.5" class="large-interactive-field !text-base">
+                                </div>
+                                <div class="flex flex-col justify-center">
+                                     <label for="anesthesia-selectedEtTubeCuff" class="flex items-center cursor-pointer">
+                                        <input type="checkbox" id="anesthesia-selectedEtTubeCuff" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 font-semibold text-gray-700">커프(Cuff) 확인 완료</span>
+                                    </label>
+                                    <label for="anesthesia-selectedEtTubeNotes" class="block text-sm font-bold text-gray-700 mt-2 mb-1">📝 메모</label>
+                                    <input type="text" id="anesthesia-selectedEtTubeNotes" placeholder="예: 커프 약간 샘, 조금 더 큰 사이즈 고려" class="w-full p-2 border border-gray-300 rounded-md">
+                                </div>
+                                <button id="anesthesia-saveEtTubeSelection" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-blue-700 transition-colors h-full">
+                                    <i class="fas fa-save mr-2"></i>기록 저장
+                                </button>
+                            </div>
+                        </div>
+        
+                        <h2 class="section-title">ET Tube 사이즈 통합 계산기</h2>
+                        <div class="grid md:grid-cols-2 gap-8 mt-6">
+                            <div class="flex flex-col gap-8">
+                                <div class="bg-gray-50 p-6 rounded-xl border h-full flex flex-col">
+                                    <h3 class="text-xl font-bold mb-4 text-gray-800">1. 체중으로 계산</h3>
+                                    <div class="flex flex-col sm:flex-row gap-4">
+                                        <input type="number" id="anesthesia-weight-input" placeholder="체중(kg) 입력" class="large-interactive-field flex-grow !text-lg !font-bold" step="0.1">
+                                        <button id="anesthesia-calculate-weight-btn" class="w-full sm:w-auto bg-sky-600 text-white font-bold px-6 py-3 rounded-lg text-lg hover:bg-sky-700 transition-colors mt-2 sm:mt-0">수동 확인</button>
+                                    </div>
+                                    <div id="anesthesia-result-container-weight" class="hidden mt-4">
+                                        <div class="result-box result-box-weight">
+                                            <p class="text-lg text-sky-800">권장 사이즈</p>
+                                            <p id="anesthesia-result-text-weight" class="text-5xl font-extrabold text-sky-700 my-2"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50 p-6 rounded-xl border">
+                                    <h3 class="text-xl font-bold mb-4 text-center text-gray-800">체중별 사이즈 가이드</h3>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-center text-xs sm:text-sm">
+                                            <thead class="bg-gray-200">
+                                                <tr>
+                                                    <th class="px-2 py-2">~1kg</th><th class="px-2 py-2">2kg</th><th class="px-2 py-2">3.5kg</th><th class="px-2 py-2">4+kg</th><th class="px-2 py-2">6kg</th><th class="px-2 py-2">8kg</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-x divide-gray-200 bg-white">
+                                                <tr class="font-bold text-base sm:text-lg">
+                                                    <td class="px-2 py-3">3.0</td><td class="px-2 py-3">3.5</td><td class="px-2 py-3">4.0</td><td class="px-2 py-3">4.5</td><td class="px-2 py-3">5.5</td><td class="px-2 py-3">6</td>
+                                                </tr>
+                                            </tbody>
+                                            <thead class="bg-gray-200">
+                                                <tr>
+                                                    <th class="px-2 py-2">9kg</th><th class="px-2 py-2">12kg</th><th class="px-2 py-2">14kg</th><th class="px-2 py-2">20kg</th><th class="px-2 py-2">30kg</th><th class="px-2 py-2">40kg</th>
+                                                </tr>
+                                            </thead>
+                                             <tbody class="divide-x divide-gray-200 bg-white">
+                                                <tr class="font-bold text-base sm:text-lg">
+                                                    <td class="px-2 py-3">7</td><td class="px-2 py-3">7</td><td class="px-2 py-3">7.5</td><td class="px-2 py-3">9</td><td class="px-2 py-3">11</td><td class="px-2 py-3">13</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+            
+                            <div class="flex flex-col gap-8">
+                                <div class="bg-gray-50 p-6 rounded-xl border h-full flex flex-col">
+                                    <h3 class="text-xl font-bold mb-4 text-gray-800">2. 기관 직경으로 계산 (T1 X-ray)</h3>
+                                    <div class="flex flex-col sm:flex-row gap-4">
+                                        <input type="number" id="anesthesia-trachea-input" placeholder="기관 직경(mm) 입력" class="large-interactive-field flex-grow !text-lg !font-bold" step="0.01">
+                                        <button id="anesthesia-calculate-trachea-btn" class="w-full sm:w-auto bg-green-600 text-white font-bold px-6 py-3 rounded-lg text-lg hover:bg-green-700 transition-colors mt-2 sm:mt-0">확인</button>
+                                    </div>
+                                    <div id="anesthesia-result-container-trachea" class="hidden mt-4">
+                                        <div class="result-box result-box-trachea">
+                                            <p class="text-lg text-green-800">권장 사이즈 (ID)</p>
+                                            <p id="anesthesia-result-text-trachea" class="text-5xl font-extrabold text-green-700 my-2"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                 <div class="bg-gray-50 p-6 rounded-xl border">
+                                    <h3 class="text-xl font-bold mb-4 text-center text-gray-800">기관 직경별 사이즈 가이드</h3>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-center text-sm">
+                                            <thead class="bg-gray-200">
+                                                <tr><th class="px-3 py-2">기관 직경(mm)</th><th class="px-3 py-2">ET Tube ID</th></tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-200 bg-white">
+                                                <tr><td class="px-3 py-2">~ 5.13</td><td class="px-3 py-2 font-bold">2.5</td></tr>
+                                                <tr><td class="px-3 py-2">~ 5.88</td><td class="px-3 py-2 font-bold">3.0</td></tr>
+                                                <tr><td class="px-3 py-2">~ 6.63</td><td class="px-3 py-2 font-bold">3.5</td></tr>
+                                                <tr><td class="px-3 py-2">~ 7.50</td><td class="px-3 py-2 font-bold">4.0</td></tr>
+                                                <tr><td class="px-3 py-2">~ 8.13</td><td class="px-3 py-2 font-bold">4.5</td></tr>
+                                                <tr><td class="px-3 py-2">~ 8.38</td><td class="px-3 py-2 font-bold">5.0</td></tr>
+                                                <tr><td class="px-3 py-2">~ 9.13</td><td class="px-3 py-2 font-bold">5.5</td></tr>
+                                                <tr><td class="px-3 py-2">~ 10.00</td><td class="px-3 py-2 font-bold">6.0</td></tr>
+                                                <tr><td class="px-3 py-2">~ 11.38</td><td class="px-3 py-2 font-bold">6.5</td></tr>
+                                                <tr><td class="px-3 py-2">~ 11.63</td><td class="px-3 py-2 font-bold">7.0</td></tr>
+                                                <tr><td class="px-3 py-2">~ 12.50</td><td class="px-3 py-2 font-bold">7.5</td></tr>
+                                                <tr><td class="px-3 py-2">~ 13.38</td><td class="px-3 py-2 font-bold">8.0</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-8 p-4 bg-yellow-100 border border-yellow-300 rounded-lg">
+                            <p class="text-yellow-800 font-semibold">※ 이 결과는 일반적인 가이드이며, 실제 적용 시에는 환자의 품종, 체형, 기도 상태 등을 종합적으로 고려해야 합니다.</p>
+                        </div>
+                    </div>
+                </div>
+        
+                <div id="anesthesia-dischargeTab" class="tab-content">
+                     <div class="card p-6 md:p-8">
+                        <h2 class="section-title">수술 후 퇴원약 조제</h2>
+                        <div class="info-box mb-4"><p><strong>목표:</strong> 환자가 집으로 돌아간 후에도 통증 없이 편안하게 회복할 수 있도록, 환자 상태에 맞는 최적의 약물을 정확한 용량으로 조제합니다.</p></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                            <div>
+                                <label for="anesthesia-prescription_days" class="block text-center text-xl font-semibold text-gray-700 mb-2">총 처방일수</label>
+                                <input type="number" id="anesthesia-prescription_days" value="7" class="input-field">
+                            </div>
+                            <div id="anesthesia-discharge_gold">...</div>
+                        </div>
+                        <div id="anesthesia-discharge_alt" class="mt-6">...</div>
+                    </div>
+                </div>
+        
+                <div id="anesthesia-protocolTab" class="tab-content">
+                    <div id="anesthesia-patch_recommendation" class="mb-6"></div>
+                    <div class="card p-6 md:p-8">
+                        <header class="border-b-2 border-blue-600 pb-4 mb-8">
+                            <h1 class="text-3xl md:text-4xl font-bold text-blue-800">부프레노르핀 패치 임상 프로토콜 (SOP)</h1>
+                            <p class="text-lg text-gray-600 mt-2">금호동물병원 | 최종 개정일: 2025-08-02</p>
+                        </header>
+                        <section class="mb-10">
+                            <h2 class="text-2xl font-bold text-gray-800 border-l-4 border-blue-500 pl-3 mb-4">1. 목적 (Purpose)</h2>
+                            <p class="text-gray-700">본 지침은 고양이 환자에게 중등도 이상의 수술 후 통증 또는 만성 통증 관리를 위해 부프레노르핀 경피 패치를 안전하고 효과적으로 사용하는 표준 절차를 확립하는 것을 목적으로 한다.</p>
+                        </section>
+                        <section class="mb-10">
+                            <h2 class="text-2xl font-bold text-gray-800 border-l-4 border-blue-500 pl-3 mb-4">2. 적용 대상 및 금기</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                    <h3 class="text-lg font-bold text-green-800 mb-2">✅ 적용 대상 (Indications)</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                        <li><strong>주 적용 동물:</strong> 고양이</li>
+                                        <li><strong>수술 후 통증 관리:</strong> 전발치, 정형외과 수술, 개복술 등</li>
+                                        <li><strong>만성 통증 관리:</strong> 퇴행성 관절 질환(DJD), 종양성 통증, 만성 구내염</li>
+                                        <li><strong>만성 신부전(CKD) 환자의 통증 관리</strong></li>
+                                    </ul>
+                                </div>
+                                <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                                    <h3 class="text-lg font-bold text-red-800 mb-2">❌ 금기 및 주의 (Contraindications & Cautions)</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                        <li><strong>개:</strong> 흡수율의 예측 불가능성</li>
+                                        <li><strong>급성/중증 통증의 단독 치료</strong></li>
+                                        <li>체온 조절 이상(고체온/저체온) 환자</li>
+                                        <li>부착 부위 피부 질환 또는 상처</li>
+                                        <li><strong>심각한 간 기능 부전 환자</strong> (용량 조절 및 집중 모니터링 필요)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="mb-10">
+                            <h2 class="text-2xl font-bold text-gray-800 border-l-4 border-blue-500 pl-3 mb-4">3. 용량 계산 및 선택</h2>
+                            <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                                <p class="font-bold text-blue-800 text-center text-lg">목표 용량 (Target Dose): 5-10 mcg/kg/hour</p>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="bg-gray-200">
+                                        <tr>
+                                            <th class="p-3 font-bold uppercase text-gray-600 border border-gray-300">체중 (kg)</th>
+                                            <th class="p-3 font-bold uppercase text-gray-600 border border-gray-300">시간당 필요 용량 (mcg/h)</th>
+                                            <th class="p-3 font-bold uppercase text-gray-600 border border-gray-300">추천 패치 (노스판®)</th>
+                                            <th class="p-3 font-bold uppercase text-gray-600 border border-gray-300">임상적 고려사항</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="hover:bg-gray-50"><td class="p-3 text-gray-800 border border-gray-300">~ 3.0 kg</td><td class="p-3 text-gray-800 border border-gray-300">15 ~ 30</td><td class="p-3 text-gray-800 border border-gray-300 font-semibold">5 mcg/h 1매</td><td class="p-3 text-gray-800 border border-gray-300">목표 용량에 미달할 수 있으므로, 반드시 다른 진통제(가바펜틴 등)와 병용해야 합니다.</td></tr>
+                                        <tr class="hover:bg-gray-50"><td class="p-3 text-gray-800 border border-gray-300">3.1 ~ 6.0 kg</td><td class="p-3 text-gray-800 border border-gray-300">15.5 ~ 60</td><td class="p-3 text-gray-800 border border-gray-300 font-semibold">10 mcg/h 1매</td><td class="p-3 text-gray-800 border border-gray-300">체중 범위가 넓어 용량 부족 가능성이 높습니다. **적극적인 다중 진통 프로토콜이 필수적입니다.**</td></tr>
+                                        <tr class="hover:bg-gray-50"><td class="p-3 text-gray-800 border border-gray-300">> 6.0 kg</td><td class="p-3 text-gray-800 border border-gray-300">30+</td><td class="p-3 text-gray-800 border border-gray-300 font-semibold">20 mcg/h 1매</td><td class="p-3 text-gray-800 border border-gray-300">패치 단독 사용은 부적절합니다. **다른 진통 요법의 보조적인 수단으로만 사용합니다.**</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="bg-red-600 text-white text-center font-bold p-3 rounded-lg mt-6">🚨 경고: 패치는 절대 자르지 말 것 (NEVER CUT THE PATCH)! 약물 방출 조절막이 파괴되어 과용량(Dose Dumping) 위험이 있습니다.</div>
+                        </section>
+                        </div>
+                </div>
+        
+                <div id="anesthesia-educationTab" class="tab-content">
+                    <div class="card p-6 md:p-8">
+                         <div class="no-print bg-white p-4 rounded-lg shadow-md mb-6 flex flex-col sm:flex-row gap-3 justify-center">
+                            <button id="anesthesia-education-pdf-btn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" /></svg>
+                                🖨️ 인쇄 또는 PDF로 저장
+                            </button>
+                            <button id="anesthesia-education-png-btn" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" /></svg>
+                                🖼️ 이미지(PNG)로 저장
+                            </button>
+                        </div>
                 
-                <!-- ... Other Anesthesia Content Panels ... -->
-
+                        <div id="anesthesia-education-capture-area" class="bg-white rounded-xl shadow-lg p-6 sm:p-10 border border-gray-200">
+                            
+                            <header class="text-center mb-10">
+                                <h1 class="text-3xl md:text-4xl font-bold text-blue-800">금호동물병원</h1>
+                                <h2 class="text-xl md:text-2xl font-semibold text-gray-700 mt-3">우리 아이를 위한 통증 관리 패치 안내문</h2>
+                            </header>
+                
+                            <div class="border-y border-gray-200 py-5 mb-10 space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="flex items-center">
+                                        <label for="anesthesia-patientName-edu" class="font-semibold text-gray-600 mr-3 w-24 text-right">환자 이름:</label>
+                                        <input type="text" id="anesthesia-patientName-edu" placeholder="아이 이름 입력" class="flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-300">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                     <div class="flex items-center">
+                                        <label for="anesthesia-attachDate-edu" class="font-semibold text-gray-600 mr-3 w-24 text-right">부착 날짜:</label>
+                                        <input type="date" id="anesthesia-attachDate-edu" class="flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-300 cursor-pointer">
+                                    </div>
+                                    <div class="flex items-center">
+                                        <label for="anesthesia-attachTime-edu" class="font-semibold text-gray-600 mr-3 w-24 text-right">부착 시간:</label>
+                                        <input type="time" id="anesthesia-attachTime-edu" class="flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-300 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div id="anesthesia-removalInfo-edu" class="mt-4 p-4 bg-yellow-100 border-2 border-yellow-400 rounded-lg text-center transition-all duration-300">
+                                    <p class="font-bold text-yellow-900">날짜와 시간을 입력하면 제거일이 계산됩니다.</p>
+                                </div>
+                            </div>
+                
+                            <p class="text-gray-700 text-base md:text-lg mb-10 text-center leading-relaxed">
+                                <!-- Education Patch Text Here -->
+                            </p>
+                
+                            <div class="bg-blue-50 border-l-4 border-blue-500 p-5 rounded-md mb-10">
+                                <!-- Education Patch Info Here -->
+                            </div>
+                
+                            <div class="mb-10">
+                                <h3 class="text-2xl font-bold text-gray-800 text-center mb-4">👀 우리 아이, 이렇게 관찰해주세요!</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="bg-green-50 rounded-lg p-5 border border-green-200">
+                                        <!-- OK Signs -->
+                                    </div>
+                                    <div class="bg-red-50 rounded-lg p-5 border border-red-200">
+                                        <!-- Warning Signs -->
+                                    </div>
+                                </div>
+                            </div>
+                
+                            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-5 rounded-md mb-10">
+                                <!-- Important Rules -->
+                            </div>
+                
+                            <footer class="border-t border-gray-200 pt-8 text-center">
+                                <!-- Hospital Info Footer -->
+                            </footer>
+                
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- ====================================================== -->
         <!-- == TAB 3: EDUCATION DASHBOARD CONTENT               == -->
         <!-- ====================================================== -->
-        <div id="education-wrapper" class="main-tab-content" style="display: none;">
+        <div id="education-wrapper" class="main-tab-content">
              <div class="max-w-5xl mx-auto">
                 <div class="bg-white p-6 rounded-2xl shadow-lg mb-8 border border-slate-200">
                     <div class="flex flex-col sm:flex-row gap-6 items-center">
@@ -190,41 +989,50 @@
                     <div class="border-b border-slate-200">
                         <nav class="flex flex-col sm:flex-row">
                             <button class="tab-button flex-1 text-center font-bold text-slate-600 hover:bg-slate-50 active" data-education-tab="stomatitis">
-                                만성 구내염
+                                <i class="fas fa-tooth mr-2"></i>만성 구내염
                             </button>
                             <button class="tab-button flex-1 text-center font-bold text-slate-600 hover:bg-slate-50" data-education-tab="cyclosporine">
-                                사이클로스포린
+                                <i class="fas fa-pills mr-2"></i>사이클로스포린
                             </button>
                             <button class="tab-button flex-1 text-center font-bold text-slate-600 hover:bg-slate-50" data-education-tab="norspan">
-                                노스판 패치
+                                <i class="fas fa-notes-medical mr-2"></i>노스판 패치
                             </button>
                             <button class="tab-button flex-1 text-center font-bold text-slate-600 hover:bg-slate-50" data-education-tab="gabapentin">
-                                가바펜틴
+                                <i class="fas fa-capsules mr-2"></i>가바펜틴
                             </button>
                         </nav>
                     </div>
         
                     <div class="p-4 sm:p-6 md:p-8">
                         <div id="education-stomatitisContent" class="tab-content active">
-                            <!-- Education Stomatitis Content Here -->
-                             <div class="chart-container"><canvas id="prognosisChart"></canvas></div>
+                            <header class="text-center mb-10">
+                                <h1 id="education-stomatitisTitle" class="text-3xl sm:text-4xl font-extrabold mb-2 gradient-text">우리 아이를 위한<br>만성 구내염 및 전발치 안내서</h1>
+                            </header>
+                            <!-- Full Stomatitis Content -->
+                            <div class="chart-container"><canvas id="prognosisChart"></canvas></div>
                         </div>
         
                         <div id="education-cyclosporineContent" class="tab-content">
-                            <!-- Education Cyclosporine Content Here -->
+                            <!-- Full Cyclosporine Content -->
                         </div>
         
                         <div id="education-norspanContent" class="tab-content">
-                            <!-- Education Norspan Content Here -->
+                             <!-- Full Norspan Content -->
                         </div>
         
                         <div id="education-gabapentinContent" class="tab-content">
-                            <!-- Education Gabapentin Content Here -->
+                           <!-- Full Gabapentin Content -->
                         </div>
                     </div>
                     
                     <footer class="p-4 sm:p-6 md:p-8 mt-4 border-t border-slate-200 text-center">
-                       <!-- Education Footer Here -->
+                        <div class="mt-6 bg-slate-50 rounded-lg p-6 inline-block shadow-sm border border-slate-200">
+                            <p class="font-bold text-lg text-indigo-700">금호동물병원</p>
+                            <p class="text-slate-700 mt-2">📞 <a href="tel:062-383-7572" class="hover:underline">062-383-7572</a></p>
+                            <a href="https://pf.kakao.com/_jiICK/chat" target="_blank" class="mt-4 inline-block w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2.5 px-4 rounded-lg">
+                                카카오톡 문의
+                            </a>
+                        </div>
                     </footer>
                 </div>
                 
@@ -237,10 +1045,5 @@
         </div>
     </main>
 
-    <!-- NOTE: All JavaScript logic should be placed here, just before the closing </body> tag. -->
-    <!-- It has been omitted from this HTML-only file as requested. -->
-    <script>
-        // All combined and scoped JavaScript would go here.
-    </script>
 </body>
 </html>
