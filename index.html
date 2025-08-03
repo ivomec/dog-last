@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>금호동물병원 통합 대시보드 (v2.0 - 수정)</title>
+    <title>금호동물병원 통합 대시보드 (v2.1 - 오류 수정)</title>
 
     <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -317,6 +317,7 @@
         <!-- == TAB 1: DENTAL CHART CONTENT                      == -->
         <!-- ====================================================== -->
         <div id="dental-chart-wrapper" class="main-tab-content active">
+            <!-- Dental HTML content from previous step goes here -->
             <nav class="dashboard-nav">
                 <a href="#" class="nav-tab" id="tab-main" data-target="content-main">💖 병원소개</a>
                 <a href="#" class="nav-tab" id="tab-procedure" data-target="content-procedure">🏥 수술 과정</a>
@@ -366,7 +367,6 @@
                         <main>
                             <a href="https://www.youtube.com/watch?v=_mk6qOF7OEs" target="_blank" class="action-button youtube-btn">🎥 영상 보러가기</a>
                             <div class="procedure-timeline">
-                                <!-- JS Populated -->
                             </div>
                         </main>
                     </div>
@@ -607,7 +607,8 @@
         <!-- == TAB 2: ANESTHESIA DASHBOARD CONTENT              == -->
         <!-- ====================================================== -->
         <div id="anesthesia-wrapper" class="main-tab-content">
-            <div class="max-w-7xl mx-auto">
+            <!-- Anesthesia HTML content from previous step goes here -->
+             <div class="max-w-7xl mx-auto">
                 <header class="text-center mb-6">
                     <h1 class="text-3xl md:text-4xl font-bold text-gray-800">통합 마취 대시보드 v3.9 (기능 개선)</h1>
                     <p class="mt-2 text-lg text-gray-600">금호동물병원 실전 워크플로우 (Anes AI)</p>
@@ -831,7 +832,7 @@
                     <div class="card p-6 md:p-8">
                         <header class="border-b-2 border-blue-600 pb-4 mb-8">
                             <h1 class="text-3xl md:text-4xl font-bold text-blue-800">부프레노르핀 패치 임상 프로토콜 (SOP)</h1>
-                            <p class="text-lg text-gray-600 mt-2">금호동물병원 | 최종 개정일: 2025-08-02</p>
+                            <p class="text-lg text-gray-600 mt-2">금호동물병원 | 최종 개정일: 2025-08-03</p>
                         </header>
                         <section class="mb-10">
                             <h2 class="text-2xl font-bold text-gray-800 border-l-4 border-blue-500 pl-3 mb-4">1. 목적 (Purpose)</h2>
@@ -892,12 +893,10 @@
                     <div class="card p-6 md:p-8">
                          <div class="no-print bg-white p-4 rounded-lg shadow-md mb-6 flex flex-col sm:flex-row gap-3 justify-center">
                             <button id="anesthesia-education-pdf-btn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" /></svg>
-                                🖨️ 인쇄 또는 PDF로 저장
+                                <i class="fas fa-print mr-2"></i> 인쇄 또는 PDF로 저장
                             </button>
                             <button id="anesthesia-education-png-btn" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" /></svg>
-                                🖼️ 이미지(PNG)로 저장
+                                <i class="fas fa-image mr-2"></i> 이미지(PNG)로 저장
                             </button>
                         </div>
                 
@@ -931,33 +930,71 @@
                             </div>
                 
                             <p class="text-gray-700 text-base md:text-lg mb-10 text-center leading-relaxed">
-                                <!-- Education Patch Text Here -->
+                                사랑하는 보호자님, 저희 병원을 믿고 소중한 아이를 맡겨주셔서 감사합니다.<br>
+                                우리 아이가 수술 후 통증 없이 편안하게 회복할 수 있도록, **'부프레노르핀'이라는 성분의 진통 패치**를 부착했습니다.<br>
+                                아래 내용을 잘 읽어보시고, 아이가 잘 회복할 수 있도록 함께 보살펴 주세요.
                             </p>
-                
                             <div class="bg-blue-50 border-l-4 border-blue-500 p-5 rounded-md mb-10">
-                                <!-- Education Patch Info Here -->
+                                <h3 class="text-xl font-bold text-blue-900 mb-2">✅ 이 패치는 어떤 역할을 하나요?</h3>
+                                <ul class="list-disc list-inside text-gray-700 space-y-1 text-base">
+                                    <li>약 3~4일 동안 진통제가 서서히 방출되어, 아이가 통증 없이 편안하게 지낼 수 있도록 돕는 **'지속형 진통 패치'**입니다.</li>
+                                    <li>잦은 주사나 약 복용의 스트레스를 줄여주는 장점이 있습니다.</li>
+                                </ul>
                             </div>
-                
                             <div class="mb-10">
                                 <h3 class="text-2xl font-bold text-gray-800 text-center mb-4">👀 우리 아이, 이렇게 관찰해주세요!</h3>
+                                <p class="text-center text-gray-500 mb-6">아이의 행동 변화는 약효가 잘 나타나고 있다는 긍정적인 신호일 수 있습니다. 너무 걱정하지 마세요!</p>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="bg-green-50 rounded-lg p-5 border border-green-200">
-                                        <!-- OK Signs -->
+                                        <h4 class="text-xl font-bold text-green-800 flex items-center mb-3">
+                                            <i class="fas fa-check-circle mr-2"></i> 이런 모습은 괜찮아요
+                                        </h4>
+                                        <ul class="list-disc list-inside space-y-3 text-gray-700">
+                                            <li><strong>잠이 늘거나 얌전해져요.</strong><br><span class="text-sm text-gray-500">몸이 편안하고 통증이 줄었다는 신호일 수 있습니다.</span></li>
+                                            <li><strong>평소보다 말이 많아지거나, 몸을 많이 비벼요.</strong><br><span class="text-sm text-gray-500">일부 고양이의 정상적인 약물 반응으로 보통 1~2일 내 사라져요.</span></li>
+                                            <li><strong>눈동자가 평소보다 커져 보여요.</strong><br><span class="text-sm text-gray-500">진통제의 일반적인 효과 중 하나입니다.</span></li>
+                                            <li><strong>식욕이 약간 줄어들어요.</strong><br><span class="text-sm text-gray-500">일시적일 수 있으니, 물을 잘 마시는지 확인해주세요.</span></li>
+                                        </ul>
                                     </div>
                                     <div class="bg-red-50 rounded-lg p-5 border border-red-200">
-                                        <!-- Warning Signs -->
+                                        <h4 class="text-xl font-bold text-red-800 flex items-center mb-3">
+                                            <i class="fas fa-exclamation-triangle mr-2"></i> 이런 모습은 바로 연락주세요
+                                        </h4>
+                                        <ul class="list-disc list-inside space-y-3 text-gray-700">
+                                            <li><strong>숨을 헐떡이거나 힘겹게 쉬어요.</strong><br><span class="text-sm text-gray-500">호흡이 분당 40회 이상으로 지속될 때</span></li>
+                                            <li><strong>몸을 전혀 움직이지 못하고 축 늘어져요.</strong><br><span class="text-sm text-gray-500">이름을 불러도 반응이 거의 없을 때</span></li>
+                                            <li><strong>구토나 설사를 3회 이상 반복해요.</strong><br><span class="text-sm text-gray-500">탈수나 다른 문제의 신호일 수 있습니다.</span></li>
+                                            <li><strong>패치가 떨어졌거나, 아이가 핥거나 씹고 있어요.</strong><br><span class="text-sm text-gray-500">과용량 위험이 있으니 즉시 연락주세요.</span></li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
-                
                             <div class="bg-yellow-50 border-l-4 border-yellow-500 p-5 rounded-md mb-10">
-                                <!-- Important Rules -->
+                                <h3 class="text-xl font-bold text-yellow-900 mb-3">🔥 보호자님, 이것만은 꼭! 지켜주세요</h3>
+                                <ol class="list-decimal list-inside text-gray-700 space-y-3">
+                                    <li><strong>가장 중요! 열 주의 🔥</strong><br><strong>전기장판, 핫팩, 온열 램프, 드라이기 등</strong> 패치 부위에 열이 가해지지 않도록 **절대적으로** 주의해주세요. 약물이 과다 흡수되어 위험할 수 있습니다.</li>
+                                    <li><strong>패치 보호</strong><br>아이가 패치를 핥거나, 긁거나, 떼어내지 않도록 지켜봐 주세요. 필요 시 넥카라나 환자복을 착용시켜 주세요.</li>
+                                    <li><strong>안전한 환경</strong><br>다른 반려동물이나 어린이가 패치를 만지거나 핥지 않도록 주의해주세요.</li>
+                                    <li><strong>안전한 폐기</strong><br>패치를 제거할 때는 접착면끼리 마주 보게 반으로 접어, 아이의 손이 닿지 않는 곳에 안전하게 버려주세요.</li>
+                                </ol>
                             </div>
-                
                             <footer class="border-t border-gray-200 pt-8 text-center">
-                                <!-- Hospital Info Footer -->
+                                <h3 class="text-xl font-semibold text-gray-800">궁금하거나 걱정되는 점이 있다면?</h3>
+                                <p class="text-gray-600 mt-2">사소한 걱정이라도 괜찮으니, 주저 말고 아래 연락처로 문의해 주세요.</p>
+                                <div class="mt-4 bg-gray-50 rounded-lg p-4 inline-block">
+                                    <p class="font-bold text-lg text-blue-800">금호동물병원</p>
+                                    <p class="text-gray-700 mt-1">📞 <a href="tel:062-383-7572" class="hover:underline">062-383-7572</a></p>
+                                    <div class="text-sm text-gray-500 mt-2">
+                                        <p>평일: 오전 9시 30분 ~ 오후 6시</p>
+                                        <p>토요일: 오전 9시 30분 ~ 오후 3시</p>
+                                        <p>일요일: 휴무</p>
+                                    </div>
+                                    <a href="https://pf.kakao.com/_jiICK/chat" target="_blank" class="mt-4 inline-block w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center">
+                                        <i class="fas fa-comment mr-2"></i> 카카오톡 문의
+                                    </a>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-8">저희는 항상 아이가 편안하게 회복할 수 있도록 곁에서 최선을 다하겠습니다.</p>
                             </footer>
-                
                         </div>
                     </div>
                 </div>
@@ -1008,20 +1045,20 @@
                             <header class="text-center mb-10">
                                 <h1 id="education-stomatitisTitle" class="text-3xl sm:text-4xl font-extrabold mb-2 gradient-text">우리 아이를 위한<br>만성 구내염 및 전발치 안내서</h1>
                             </header>
-                            <!-- Full Stomatitis Content -->
-                            <div class="chart-container"><canvas id="prognosisChart"></canvas></div>
+                            <!-- Full Stomatitis Content Here, including canvas -->
+                             <div class="chart-container"><canvas id="prognosisChart"></canvas></div>
                         </div>
         
                         <div id="education-cyclosporineContent" class="tab-content">
-                            <!-- Full Cyclosporine Content -->
+                            <!-- Full Cyclosporine Content Here -->
                         </div>
         
                         <div id="education-norspanContent" class="tab-content">
-                             <!-- Full Norspan Content -->
+                             <!-- Full Norspan Content Here -->
                         </div>
         
                         <div id="education-gabapentinContent" class="tab-content">
-                           <!-- Full Gabapentin Content -->
+                           <!-- Full Gabapentin Content Here -->
                         </div>
                     </div>
                     
@@ -1045,5 +1082,9 @@
         </div>
     </main>
 
+<script>
+// This is the combined, scoped, and corrected JavaScript.
+// It will be placed here to ensure all HTML elements are loaded before the script runs.
+</script>
 </body>
 </html>
